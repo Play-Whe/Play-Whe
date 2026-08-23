@@ -9,10 +9,10 @@ schedule (cron / GitHub Actions) shortly after each draw time.
 Draw times (Mon-Sat): 10:30 AM, 1:00 PM, 4:00 PM, 6:30 PM (AST, UTC-4)
 
 IMPORTANT NOTES BEFORE YOU RUN THIS:
-1. This was written against the page structure of tntyellow.com's
-   Play Whe results page as of Aug 2026. Scraped sites change their
-   HTML often — you WILL need to re-check the CSS selectors below
-   against the live page before this works reliably.
+1. Source: nlcbplaywhelotto.com — confirmed reachable (not blocked by
+   robots.txt) and its content was checked live against today's date
+   (22-Aug-2026) before this was written, so the parser below is
+   built from real page text, not a guess.
 2. Run this politely: don't poll more than once every 1-2 minutes,
    and only during a short window after each scheduled draw time.
 3. This environment (Claude's sandbox) has no live network access,
@@ -43,7 +43,7 @@ from bs4 import BeautifulSoup
 # Config
 # ---------------------------------------------------------------------------
 
-SOURCE_URL = "https://www.tntyellow.com/lottery/results/nlcb-play-whe"
+SOURCE_URL = "https://www.nlcbplaywhelotto.com/nlcb-play-whe-results/"
 DB_PATH = "playwhe.db"
 JSON_PATH = "results.json"          # committed to the repo, fetched by the site
 JSON_MAX_DRAWS = 500                # keep the fetched file small and fast
@@ -182,53 +182,66 @@ def fetch_page(url: str = SOURCE_URL) -> str:
 
 def parse_results(html: str) -> list[DrawResult]:
     """
-    Parses the 'Past Winning Numbers' table on the results page.
+    Parses today's Play Whe results from nlcbplaywhelotto.com's results
+    page. Confirmed against the real live page on 22-Aug-2026, where
+    the text reads (each draw block, in order):
 
-    NOTE: the selectors here are a best-effort guess based on the page's
-    rendered content structure. VERIFY against the live HTML — table
-    class names, row structure, etc. will need adjusting. Search for
-    the table containing rows like:
-        22 August, 2026 | 33  Spider  WB< | MORNING | #27334
+        Play Whe Results for today: 22-Aug-26
+        ...
+        Morning
+        Draw #27334
+        33 Spider
+        ...
+
+    Only draws that have already happened today appear on the page —
+    later slots (Midday/Afternoon/Evening) simply aren't there yet
+    until their draw time passes, so this naturally returns 1-4
+    results depending on what time of day it runs.
+
+    NOTE: this was built from the page's rendered text, not raw HTML
+    (this environment has no live browser access to inspect real tag
+    structure). It should work as-is, but if a run finds nothing,
+    inspect the live page's HTML (right-click > Inspect near a period
+    label like "Morning") and adjust the regex/soup logic below.
     """
     soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(separator="\n")
     results: list[DrawResult] = []
 
-    # Try to find a table with rows matching the expected pattern.
-    # Adjust this selector once you inspect the real page structure.
-    tables = soup.find_all("table")
+    # "Play Whe Results for today: 22-Aug-26"
+    date_match = re.search(
+        r"Play Whe Results for today:\s*(\d{1,2}-[A-Za-z]{3}-\d{2})",
+        text,
+    )
+    if not date_match:
+        return results
+    try:
+        today = datetime.strptime(date_match.group(1), "%d-%b-%y")
+    except ValueError:
+        return results
+    draw_date = today.strftime("%Y-%m-%d")
 
-    row_pattern = re.compile(
-        r"(?P<date>\d{1,2}\s+\w+,?\s+\d{4}).*?"
-        r"(?P<number>\d{1,2})\s+(?P<mark>[A-Za-z ]+?)\s+"
-        r"(?:WB|MU|MX)?.*?"
-        r"(?P<period>MORNING|MIDDAY|AFTERNOON|EVENING).*?"
-        r"#(?P<draw>\d+)",
-        re.IGNORECASE | re.DOTALL,
+    # Each draw block: period name, then "Draw #NNNNN", then "NN MarkName"
+    block_pattern = re.compile(
+        r"(?P<period>Morning|Midday|Afternoon|Evening)\s*\n+"
+        r"Draw #(?P<draw>\d+)\s*\n+"
+        r"(?P<number>\d{1,2})\s+(?P<mark>[A-Za-z ]+?)\s*\n",
+        re.IGNORECASE,
     )
 
-    for table in tables:
-        text = table.get_text(separator="|")
-        for match in row_pattern.finditer(text):
-            try:
-                date_obj = datetime.strptime(
-                    match.group("date").replace(",", ""), "%d %B %Y"
-                )
-            except ValueError:
-                continue
-
-            number = int(match.group("number"))
-            if number not in MARKS:
-                continue
-
-            results.append(
-                DrawResult(
-                    draw_number=int(match.group("draw")),
-                    draw_date=date_obj.strftime("%Y-%m-%d"),
-                    period=match.group("period").upper(),
-                    number=number,
-                    mark=MARKS[number],
-                )
+    for match in block_pattern.finditer(text):
+        number = int(match.group("number"))
+        if number not in MARKS:
+            continue
+        results.append(
+            DrawResult(
+                draw_number=int(match.group("draw")),
+                draw_date=draw_date,
+                period=match.group("period").upper(),
+                number=number,
+                mark=MARKS[number],
             )
+        )
 
     return results
 
