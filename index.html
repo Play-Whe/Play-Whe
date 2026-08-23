@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Play Whe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #7A1E1E;
+    --ink-2: #5C1616;
+    --ink-3: #4A1212;
+    --parchment: #FFFBF2;
+    --parchment-dim: #F2E6C8;
+    --marigold: #E8B923;
+    --ember: #C0392B;
+    --jade: #2E7D4F;
+    --ink-text: #241010;
+    --paper-text: #FFF7E8;
+    --paper-text-dim: #E0B8B0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background: var(--ink);
+    color: var(--paper-text);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background:
+      radial-gradient(circle at 15% 8%, rgba(232,185,35,0.12), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(46,125,79,0.14), transparent 45%),
+      var(--ink);
+  }
+
+  /* ---------- Header / hero ---------- */
+  .hero{ position:relative; }
+  .help-btn{
+    position:absolute; top:18px; right:18px;
+    width:34px; height:34px; border-radius:50%;
+    border:1.5px solid rgba(255,247,232,0.35);
+    background:none; color: var(--marigold);
+    font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+
+  header{
+    padding: 22px 20px 14px;
+    text-align:center;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color: var(--marigold);
+    margin-bottom:6px;
+  }
+  h1.wordmark{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:30px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1.wordmark span{ color: var(--marigold); font-style: italic; font-weight:600;}
+  .flag-stripe{ display:flex; justify-content:center; gap:4px; margin:9px 0 7px; }
+  .flag-stripe span{ width:22px; height:3px; border-radius:2px; display:block; }
+  .flag-stripe span:nth-child(1){ background:#CE1126; }
+  .flag-stripe span:nth-child(2){ background:#FFFFFF; }
+  .flag-stripe span:nth-child(3){ background:#111111; }
+  .tagline{
+    font-size:13px;
+    color: var(--paper-text-dim);
+    margin-top:4px;
+  }
+
+  /* ---------- Wheel (signature element) ---------- */
+  .wheel-wrap{
+    display:flex;
+    justify-content:center;
+    padding: 6px 0 4px;
+    position:relative;
+  }
+  .wheel-legend{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    font-size:11.5px; color: var(--paper-text-dim);
+    border:1px solid rgba(255,247,232,0.25);
+    border-radius:100px;
+    padding:7px 16px;
+    margin: 8px auto 10px;
+    width:fit-content;
+  }
+  .legend-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle;}
+  .legend-sep{ opacity:0.4; }
+  .wheel-caption{
+    text-align:center;
+    font-size:11.5px;
+    color: var(--paper-text-dim);
+    padding: 0 32px 10px;
+    line-height:1.5;
+  }
+  .seg{ cursor:pointer; transition: opacity .15s ease; }
+  .seg:hover{ opacity:0.8; }
+  .seg-label{ font-family:'Space Mono',monospace; font-size:11px; pointer-events:none; font-weight:700;}
+  .wheel-center-num{ font-family:'Fraunces',serif; font-weight:700; fill:var(--marigold); }
+  .wheel-center-mark{ font-family:'Inter',sans-serif; font-size:10px; fill:var(--paper-text-dim); }
+
+  /* ---------- Main scroll area ---------- */
+  main{
+    flex:1;
+    overflow-y:auto;
+    padding: 4px 16px 90px;
+  }
+  section.view{ display:none; }
+  section.view.active{ display:block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .card{
+    background: var(--parchment);
+    color: var(--ink-text);
+    border-radius: 14px;
+    padding: 16px 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  }
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-size:17px;
+    margin:0 0 3px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .card .sub{
+    font-size:12px;
+    color:#6b6350;
+    margin-bottom:12px;
+    line-height:1.45;
+  }
+  .pill{
+    display:inline-block;
+    font-family:'Space Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.04em;
+    padding:2px 7px;
+    border-radius:100px;
+    background: rgba(193,84,58,0.14);
+    color: var(--ember);
+    font-weight:700;
+  }
+  .card-head-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:8px; margin-bottom:12px;
+  }
+  .card-head-row h2{ margin:0; }
+  .results-btn{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:11px;
+    background: var(--jade); color:#fff;
+    border:none; border-radius:100px; padding:7px 12px;
+    display:flex; align-items:center; gap:3px;
+    cursor:pointer; white-space:nowrap; flex-shrink:0;
+  }
+
+  /* Latest draws */
+  .draw-row{
+    display:grid;
+    grid-template-columns: 36px 78px 34px 1fr 112px;
+    align-items:center;
+    column-gap:8px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(42,38,32,0.09);
+  }
+  .draw-row:last-child{ border-bottom:none; }
+  .draw-icon{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+  }
+  .draw-period-block{ display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .draw-period{ font-weight:700; font-size:12.5px; color: var(--jade); }
+  .draw-status{ font-size:10px; color:#9a927c; }
+  .draw-status.done{ color:#6b6350; }
+  .draw-num-badge{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:15px;
+    background: var(--ink);
+    color: var(--parchment);
+    width:32px; height:32px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .draw-num-badge.dash{ background:#EAE1C8; color:#a89f86; font-size:17px; }
+  .draw-mark-name{
+    min-width:0; font-weight:600; font-size:13.5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .draw-mark-name.pending{ color:#9a927c; font-style:italic; font-weight:500; }
+  .under-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    justify-self:start;
+    font-size:10.5px; color:#6b6350;
+    background: rgba(42,38,32,0.06);
+    padding:3px 8px 3px 3px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+  .under-chip .under-num{
+    font-family:'Space Mono',monospace; font-weight:700; font-size:10px;
+    background: var(--ink); color: var(--marigold);
+    width:17px; height:17px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .under-chip b{ color:#4a4436; font-weight:700; }
+  .under-chip.unknown{ color:#a89f86; font-style:italic; background:none; }
+
+  /* Shelf list */
+  .shelf-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid rgba(42,38,32,0.09);
+  }
+  .shelf-row:last-child{border-bottom:none;}
+  .shelf-num{
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    width:26px; height:26px;
+    border-radius:7px;
+    background: var(--ink);
+    color: var(--marigold);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .shelf-name{ flex:1; font-weight:600; font-size:13.5px; }
+  .shelf-days{ font-family:'Space Mono',monospace; font-size:11.5px; color:var(--ember); font-weight:700; text-align:right;}
+  .shelf-note{
+    font-size:11px; color:#9a927c; margin-top:10px; line-height:1.5;
+    border-top: 1px dashed rgba(42,38,32,0.18); padding-top:10px;
+  }
+
+  /* Responsible play banner */
+  .banner-card{
+    display:flex; align-items:center; gap:12px;
+    background: var(--jade); color:#fff;
+    border-radius:14px; padding:14px 16px;
+    margin-bottom:14px;
+  }
+  .banner-icon{
+    width:38px; height:38px; border-radius:50%;
+    background: rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .banner-text{ display:flex; flex-direction:column; gap:2px; font-size:12px; line-height:1.4; }
+  .banner-text b{ font-size:13.5px; }
+
+  /* Follow pattern */
+  .follow-block{ margin-bottom:14px; }
+  .follow-block:last-child{ margin-bottom:0; }
+  .follow-chain{
+    display:flex; align-items:center; gap:8px; margin:8px 0 6px;
+  }
+  .follow-chip{
+    font-family:'Fraunces',serif; font-weight:700; font-size:14px;
+    background: var(--ink); color:var(--parchment);
+    border-radius:8px; padding:6px 10px;
+  }
+  .follow-arrow{ color:#9a927c; font-size:14px; }
+  .follow-pct{ font-family:'Space Mono',monospace; font-weight:700; color:var(--jade); font-size:13px;}
+  .follow-desc{ font-size:12px; color:#6b6350; line-height:1.5; }
+
+  /* Ask / search */
+  .search-box{
+    display:flex; gap:8px; margin-bottom:4px;
+  }
+  input[type="text"]{
+    flex:1;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1.5px solid rgba(42,38,32,0.18);
+    background: #fffdf8;
+    color: var(--ink-text);
+  }
+  input[type="text"]:focus{ outline:none; border-color: var(--marigold); }
+  button.go{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px;
+    background: var(--ember); color:#fff;
+    border:none; border-radius:10px; padding:0 16px;
+    cursor:pointer;
+  }
+  .example-chips{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 2px; }
+  .example-chip{
+    font-size:11.5px; background:rgba(42,38,32,0.07); color:#6b6350;
+    padding:5px 10px; border-radius:100px; cursor:pointer; border:none;
+    font-family:'Inter',sans-serif;
+  }
+  .match-row{
+    display:flex; gap:10px; padding:10px 0; border-bottom:1px solid rgba(42,38,32,0.09);
+  }
+  .match-row:last-child{ border-bottom:none; }
+  .match-num{
+    font-family:'Fraunces',serif; font-weight:700; font-size:18px;
+    width:34px; height:34px; border-radius:50%;
+    background: var(--ink); color:var(--marigold);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .match-name{ font-weight:700; font-size:14px; margin-bottom:2px;}
+  .match-why{ font-size:11.5px; color:#6b6350; line-height:1.4; }
+  .match-score{ font-family:'Space Mono',monospace; font-size:10.5px; color:var(--jade); margin-left:auto; flex-shrink:0; align-self:flex-start;}
+  .log-btn{
+    margin-top:8px;
+    font-family:'Inter',sans-serif; font-size:11.5px; font-weight:700;
+    background:none; border:1.5px solid var(--ink); color:var(--ink);
+    padding:5px 10px; border-radius:100px; cursor:pointer;
+  }
+  .empty-state{ font-size:13px; color:#6b6350; text-align:center; padding:18px 8px; line-height:1.6;}
+
+  /* Marks glossary */
+  .glossary-item{
+    padding:11px 0; border-bottom:1px solid rgba(42,38,32,0.09);
+  }
+  .glossary-item:last-child{ border-bottom:none; }
+  .glossary-head{ display:flex; align-items:center; gap:9px; margin-bottom:4px;}
+  .glossary-num{
+    font-family:'Space Mono',monospace; font-weight:700; font-size:12px;
+    background: var(--ink); color:var(--marigold);
+    width:24px; height:24px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .glossary-name{ font-family:'Fraunces',serif; font-weight:700; font-size:15px;}
+  .glossary-keywords{ font-size:11.5px; color:#6b6350; line-height:1.5; padding-left:33px;}
+  #glossarySearch{ margin-bottom:10px; }
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabbar{
+    position:sticky; bottom:0; left:0; right:0;
+    display:flex;
+    background: var(--ink-2);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.tabbar button{
+    flex:1;
+    background:none; border:none;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:8px 2px 6px;
+    color: var(--paper-text-dim);
+    font-family:'Inter',sans-serif; font-size:10.5px; font-weight:600;
+    cursor:pointer;
+    border-radius:10px;
+  }
+  nav.tabbar button.active{ color: var(--marigold); }
+  nav.tabbar svg{ width:20px; height:20px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hero">
+    <button class="help-btn" title="How Play Whe works">?</button>
+
+    <header>
+      <div class="eyebrow">Trinidad &amp; Tobago</div>
+      <h1 class="wordmark">Play <span>Whe</span></h1>
+      <div class="flag-stripe"><span></span><span></span><span></span></div>
+      <div class="tagline" id="tagline">Marks, dreams, and what's playing today</div>
+    </header>
+
+    <div class="wheel-wrap">
+      <svg id="wheel" width="290" height="290" viewBox="0 0 290 290"></svg>
+    </div>
+    <div class="wheel-legend">
+      <span><span class="legend-dot" style="background:var(--ember)"></span>Longer since drawn</span>
+      <span class="legend-sep">|</span>
+      <span><span class="legend-dot" style="background:var(--marigold)"></span>Recently drawn</span>
+    </div>
+    <div class="wheel-caption">👆 Tap any segment to look it up.</div>
+  </div>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+
+      <div class="card">
+        <div class="card-head-row">
+          <h2>Today's draws <span class="pill" id="todayDate"></span></h2>
+          <button class="results-btn">View all results <span>›</span></button>
+        </div>
+        <div id="todayDraws"></div>
+      </div>
+
+      <div class="banner-card">
+        <div class="banner-icon">✅</div>
+        <div class="banner-text">
+          <b>3 draws daily. 36 chances to win.</b>
+          <span>Stay tuned and play responsibly.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🗄️ Shelf marks</h2>
+        <div class="sub">Marks that haven't fallen in the longest while — tracked from our current data window.</div>
+        <div id="shelfList"></div>
+        <div class="shelf-note" id="shelfNote"></div>
+      </div>
+
+      <div class="card">
+        <h2>↳ Usually follows</h2>
+        <div class="sub">What tends to land right after a mark falls, based on what we've tracked so far.</div>
+        <div id="followList"></div>
+      </div>
+
+    </section>
+
+    <!-- ASK -->
+    <section class="view" id="view-ask">
+      <div class="card">
+        <h2>🔮 What should I play?</h2>
+        <div class="sub">Describe your dream or what happened — we'll match it against the old marks.</div>
+        <div class="search-box">
+          <input type="text" id="dreamInput" placeholder="e.g. dreamt of a dead man in a car crash">
+          <button class="go" id="dreamGo">Ask</button>
+        </div>
+        <div class="example-chips">
+          <button class="example-chip" data-ex="funeral coffin crying">funeral</button>
+          <button class="example-chip" data-ex="fighting quarrelling temper">quarrel</button>
+          <button class="example-chip" data-ex="money gold silver">money</button>
+          <button class="example-chip" data-ex="baby child crying">child</button>
+          <button class="example-chip" data-ex="water river bathing">water</button>
+        </div>
+      </div>
+      <div class="card" id="resultsCard" style="display:none;">
+        <h2>Closest marks</h2>
+        <div class="sub">Quick keyword match against the mark chart.</div>
+        <div id="matchList"></div>
+      </div>
+    </section>
+
+    <!-- MARKS -->
+    <section class="view" id="view-marks">
+      <div class="card">
+        <h2>📖 The 36 marks</h2>
+        <div class="sub">The full chart, number by number.</div>
+        <input type="text" id="glossarySearch" placeholder="Filter by number or word…">
+        <div id="glossaryList"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-view="view-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      Home
+    </button>
+    <button class="tab-btn" data-view="view-ask">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      Ask
+    </button>
+    <button class="tab-btn" data-view="view-marks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V5z"/><path d="M4 19.5V5"/></svg>
+      Marks
+    </button>
+  </nav>
+
+</div>
+
+<script>
+/* =========================================================
+   DATA — real NLCB Play Whe mark chart + a real recent
+   results sample (Aug 9–22, 2026), sourced from public
+   results pages. Swap HISTORY for your scraper's live feed.
+   ========================================================= */
+
+const MARKS = [
+  {n:1,name:"Centipede",kw:"cutlass penknife small gun key pen candle stick smoking chain cigarettes lights bar glass women snakes scissors tailor razor barber head old people upside down wrong side"},
+  {n:2,name:"Old Lady",kw:"woman child nurses women children dogs biggest fire lights"},
+  {n:3,name:"Carriage",kw:"car tire bicycle airplane truck van hearse danger doctors dead fire lights choir crowd dancers runners donkey peacock fowl egg breast indian woman"},
+  {n:4,name:"Dead Man",kw:"coffin hearse fire crying fresh dead businessman blind rat"},
+  {n:5,name:"Parson Man",kw:"priest pundit thief gambling man naked banking white people indian man teacher bishop church room holes ground worm snakes jumbie men key small house telephone radio"},
+  {n:6,name:"Belly",kw:"bag suitcase pot pit hole clothes naked warrior stick full bag pumpkin pregnant woman rabbit upside down sick bed nurses old woman old people"},
+  {n:7,name:"Hog",kw:"dirty water mud digging holes black hole dirty clothes old man sick man ugly warrior old ugly sick full bag"},
+  {n:8,name:"Tiger",kw:"gold indian man lion king warriors dogs hunting fighting chest temper quarreling upside down biggest blood medicine house"},
+  {n:9,name:"Cattle",kw:"milk calf grass biggest water buffalo bison meat warrior madman"},
+  {n:10,name:"Monkey",kw:"boy child children teasing pelting stones climbing swimming football cricket jockeys gentlemen dancing singing organ carnival playing mas gestures antics crazy biggest drunkard sick thief"},
+  {n:11,name:"Corbeau",kw:"doctor gentleman king policeman jackass black pants black jackpot black obeah man half half upside down wrong side crowd birds feathers duck"},
+  {n:12,name:"King",kw:"tie pin white man governor inspector sergeant saga boy biggest snake hog coins silver money men doctors ears face crying bathing clear water sea"},
+  {n:13,name:"Crapaud",kw:"girl child children playing hearing music singing choir women gentlemen doctors medicine right hand obeah man fire fowl hiding sitting squatting muscles shell cockroach ugly faeces dirty water well"},
+  {n:14,name:"Money",kw:"ears butterfly honey gold silver diamonds jewels glass bank with money paper money leaves upside down wrong side saddle mouth"},
+  {n:15,name:"Sick Woman",kw:"sick women pregnant woman glass silver bush leaves climbing trees"},
+  {n:16,name:"Jamette",kw:"cosquel women troublemaker prostitute quarrelling cursing rowdiness confusion"},
+  {n:17,name:"Pigeon",kw:"white fowl pretty birds flowers love lions kissing lovemaking naked person mad person married person children nurse dogs young girl letter forgetting sailor sailor band crowd"},
+  {n:18,name:"Water Boat",kw:"sailing bathing sea pond hold river water hose children chinese fowl iguana crocodile teeth coffin box crying medicine glass half half"},
+  {n:19,name:"Horse",kw:"dancers runners running racing saddle danger head trimming hair face ears dressing selling merchant crazy mad sick forgetting"},
+  {n:20,name:"Dog",kw:"police fbi lions commands arguing crazy mad thief bandit merchant house jamette boy child"},
+  {n:21,name:"Mouth",kw:"teeth hole talking arguing cursing water hose salesman merchant danger runners dancers horse cats"},
+  {n:22,name:"Rat",kw:"thief rotten teeth nose right foot blind mice hiding holes business premises business man drunkard naked torn clothes tight shoes clothes shoes cleaning house teacup medicine sick half half"},
+  {n:23,name:"House",kw:"church big house hosay elephant bank hotel offices hospital old woman sick drunk"},
+  {n:24,name:"Queen",kw:"eating food vegetables fruits picking fruits rotten fruit old sickness crying old people quarreling jamette women silver money"},
+  {n:25,name:"Morocoy",kw:"shell van locked enclosed house child thief ugly hard back saddle falling down rocks drum beating fire light priest king print"},
+  {n:26,name:"Fowl",kw:"fete anniversary birthday singing playing music ears choir parson crowd confusion arguing jamette creole fowl hen fowl duck turkey feather neck face head crazy mad old old people last"},
+  {n:27,name:"Little Snake",kw:"stick cane bamboo cutlass rifle rope wire line short road left foot bathing nakedness liming winning parson medicine lions"},
+  {n:28,name:"Red Fish",kw:"chinese red drinking rum drunkenness cock fowl king parson jamette bathing swimming fishes catching blood cleaning eating receiving gift"},
+  {n:29,name:"Opium Man",kw:"drunkard drinking rum walking crooked left hand parson chinese man men brown"},
+  {n:30,name:"House Cat",kw:"inside house drawers money gold ripe yellow gold cat petty thief stealing crying begging church crowd lights"},
+  {n:31,name:"Parson Wife",kw:"teacher nurse woman praying forgetting big jamette dancers women brown white hospital beggars"},
+  {n:32,name:"Shrimps",kw:"fig iron bullet bottle snake male genitals nakedness dirtiness bathing drinking rum crowd"},
+  {n:33,name:"Spider",kw:"hairy person lion hair beard bush grass nest bed grave cobweb cleaning house small house net crab shrimp paper money party bicycle hood half half"},
+  {n:34,name:"Blind Man",kw:"eyes glasses owls bats blind mice reading writing egg paper money begging sleeping blind institute cloud visitor stranger searching danger shooting bull deer goad runners crowd cemetery"},
+  {n:35,name:"Big Snake",kw:"vines long road river travelling old dead man come visitor party bursting bamboo big money gold chain king hole"},
+  {n:36,name:"Donkey",kw:"bridge sea river well hole with water deep female genitals naked rider jackass braying laughing posy night pan cemetery"}
+];
+
+const MARK_BY_NUM = Object.fromEntries(MARKS.map(m=>[m.n,m]));
+
+// Fallback seed data — used only if results.json can't be fetched
+// (e.g. first deploy before the scraper has run, or a network hiccup).
+// Once live, real data from results.json takes over automatically.
+const FALLBACK_HISTORY = [
+  {id:27284,date:"2026-08-09",period:"AFTERNOON",n:20},
+  {id:27285,date:"2026-08-09",period:"EVENING",n:4},
+  {id:27287,date:"2026-08-10",period:"MIDDAY",n:3},
+  {id:27288,date:"2026-08-10",period:"AFTERNOON",n:18},
+  {id:27289,date:"2026-08-10",period:"EVENING",n:26},
+  {id:27290,date:"2026-08-11",period:"MORNING",n:22},
+  {id:27291,date:"2026-08-11",period:"MIDDAY",n:26},
+  {id:27292,date:"2026-08-11",period:"AFTERNOON",n:28},
+  {id:27293,date:"2026-08-11",period:"EVENING",n:25},
+  {id:27294,date:"2026-08-12",period:"MORNING",n:31},
+  {id:27295,date:"2026-08-12",period:"MIDDAY",n:5},
+  {id:27296,date:"2026-08-12",period:"AFTERNOON",n:24},
+  {id:27297,date:"2026-08-12",period:"EVENING",n:36},
+  {id:27298,date:"2026-08-13",period:"MORNING",n:18},
+  {id:27299,date:"2026-08-13",period:"MIDDAY",n:26},
+  {id:27300,date:"2026-08-13",period:"AFTERNOON",n:16},
+  {id:27301,date:"2026-08-13",period:"EVENING",n:27},
+  {id:27302,date:"2026-08-14",period:"MORNING",n:25},
+  {id:27303,date:"2026-08-14",period:"MIDDAY",n:16},
+  {id:27304,date:"2026-08-14",period:"AFTERNOON",n:15},
+  {id:27305,date:"2026-08-14",period:"EVENING",n:7},
+  {id:27306,date:"2026-08-15",period:"MORNING",n:10},
+  {id:27307,date:"2026-08-15",period:"MIDDAY",n:20},
+  {id:27308,date:"2026-08-15",period:"AFTERNOON",n:25},
+  {id:27309,date:"2026-08-15",period:"EVENING",n:28},
+  {id:27310,date:"2026-08-16",period:"MORNING",n:24},
+  {id:27311,date:"2026-08-16",period:"MIDDAY",n:5},
+  {id:27312,date:"2026-08-16",period:"AFTERNOON",n:28},
+  {id:27313,date:"2026-08-16",period:"EVENING",n:5},
+  {id:27314,date:"2026-08-17",period:"MORNING",n:31},
+  {id:27315,date:"2026-08-17",period:"MIDDAY",n:32},
+  {id:27316,date:"2026-08-17",period:"AFTERNOON",n:28},
+  {id:27317,date:"2026-08-17",period:"EVENING",n:32},
+  {id:27318,date:"2026-08-18",period:"MORNING",n:5},
+  {id:27319,date:"2026-08-18",period:"MIDDAY",n:24},
+  {id:27320,date:"2026-08-18",period:"AFTERNOON",n:30},
+  {id:27321,date:"2026-08-18",period:"EVENING",n:33},
+  {id:27322,date:"2026-08-19",period:"MORNING",n:18},
+  {id:27323,date:"2026-08-19",period:"MIDDAY",n:10},
+  {id:27324,date:"2026-08-19",period:"AFTERNOON",n:22},
+  {id:27325,date:"2026-08-19",period:"EVENING",n:25},
+  {id:27326,date:"2026-08-20",period:"MORNING",n:21},
+  {id:27327,date:"2026-08-20",period:"MIDDAY",n:8},
+  {id:27328,date:"2026-08-20",period:"AFTERNOON",n:15},
+  {id:27329,date:"2026-08-20",period:"EVENING",n:7},
+  {id:27330,date:"2026-08-21",period:"MORNING",n:32},
+  {id:27331,date:"2026-08-21",period:"MIDDAY",n:19},
+  {id:27332,date:"2026-08-21",period:"AFTERNOON",n:24},
+  {id:27333,date:"2026-08-21",period:"EVENING",n:10},
+  {id:27334,date:"2026-08-22",period:"MORNING",n:33},
+];
+const FALLBACK_TODAY = "2026-08-22";
+
+// These get reassigned by loadResults() once results.json is fetched.
+let HISTORY = FALLBACK_HISTORY;
+let TODAY = FALLBACK_TODAY;
+let USING_LIVE_DATA = false;
+
+function getTrinidadDateISO(){
+  // Trinidad is AST (UTC-4) year-round — no daylight saving.
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const trinidadMs = utcMs + (-4) * 3600000;
+  return new Date(trinidadMs).toISOString().slice(0, 10);
+}
+
+async function loadResults(){
+  try{
+    const res = await fetch('./results.json', {cache: "no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if(!Array.isArray(data.history) || !data.history.length){
+      throw new Error("results.json has no history");
+    }
+    HISTORY = data.history;
+    TODAY = getTrinidadDateISO();
+    USING_LIVE_DATA = true;
+    console.info("Loaded", HISTORY.length, "live draws from results.json");
+  } catch(err){
+    console.warn("Couldn't load results.json — showing seeded fallback data.", err);
+    HISTORY = FALLBACK_HISTORY;
+    TODAY = FALLBACK_TODAY;
+    USING_LIVE_DATA = false;
+  }
+}
+
+/* =========================================================
+   COMPUTATION
+   ========================================================= */
+
+function daysBetween(a,b){
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+function computeShelf(){
+  const lastSeen = {};
+  HISTORY.forEach(d=>{ lastSeen[d.n] = d.date; });
+  const known = [];
+  const unseen = [];
+  MARKS.forEach(m=>{
+    if(lastSeen[m.n]){
+      known.push({...m, days: daysBetween(lastSeen[m.n], TODAY)});
+    } else {
+      unseen.push(m);
+    }
+  });
+  known.sort((a,b)=> b.days - a.days);
+  return {known, unseen};
+}
+
+function computeFollowers(number){
+  const tally = {};
+  let total = 0;
+  for(let i=0;i<HISTORY.length-1;i++){
+    if(HISTORY[i].n === number){
+      const next = HISTORY[i+1].n;
+      tally[next] = (tally[next]||0)+1;
+      total++;
+    }
+  }
+  const ranked = Object.entries(tally)
+    .map(([n,count])=>({n:parseInt(n), count, pct: Math.round(count/total*100)}))
+    .sort((a,b)=> b.count - a.count);
+  return {ranked, total};
+}
+
+function scoreMatch(query, mark){
+  const words = query.toLowerCase().split(/[^a-z]+/).filter(w=>w.length>2);
+  const hay = (mark.name + " " + mark.kw).toLowerCase();
+  let score = 0;
+  let hits = [];
+  words.forEach(w=>{
+    if(hay.includes(w)){ score++; hits.push(w); }
+  });
+  return {score, hits};
+}
+
+/* =========================================================
+   RENDER — Home
+   ========================================================= */
+
+function addDays(dateStr, delta){
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + delta);
+  return d.toISOString().slice(0,10);
+}
+
+function formatPillDate(iso){
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const [, m, d] = iso.split('-').map(Number);
+  return `${d} ${months[m-1]}`;
+}
+
+function getUnderMark(period){
+  const lastWeekDate = addDays(TODAY, -7);
+  const draw = HISTORY.find(d=>d.date===lastWeekDate && d.period===period);
+  return draw ? {mark: MARK_BY_NUM[draw.n], date: lastWeekDate} : null;
+}
+
+const PERIOD_META = {
+  MORNING:   {label:"Morning",   icon:"☀️", bg:"#DCEEDD"},
+  MIDDAY:    {label:"Midday",    icon:"🌤️", bg:"#DCEEDD"},
+  AFTERNOON: {label:"Afternoon", icon:"🌇", bg:"#F3D488"},
+  EVENING:   {label:"Evening",   icon:"🌙", bg:"#DCD3E6"},
+};
+
+function renderToday(){
+  const dateEl = document.getElementById('todayDate');
+  dateEl.textContent = formatPillDate(TODAY);
+  const periods = ["MORNING","MIDDAY","AFTERNOON","EVENING"];
+  const todays = HISTORY.filter(d=>d.date===TODAY);
+  const wrap = document.getElementById('todayDraws');
+  wrap.innerHTML = periods.map(p=>{
+    const meta = PERIOD_META[p];
+    const draw = todays.find(d=>d.period===p);
+    const under = getUnderMark(p);
+    const underChip = under
+      ? `<div class="under-chip"><span class="under-num">${under.mark.n}</span> under <b>${under.mark.name}</b></div>`
+      : `<div class="under-chip unknown">no record</div>`;
+    const icon = `<div class="draw-icon" style="background:${meta.bg}">${meta.icon}</div>`;
+
+    if(draw){
+      const m = MARK_BY_NUM[draw.n];
+      return `<div class="draw-row">
+        ${icon}
+        <div class="draw-period-block">
+          <div class="draw-period">${meta.label}</div>
+          <div class="draw-status done">Done</div>
+        </div>
+        <div class="draw-num-badge">${m.n}</div>
+        <div class="draw-mark-name">${m.name}</div>
+        ${underChip}
+      </div>`;
+    }
+    return `<div class="draw-row">
+      ${icon}
+      <div class="draw-period-block">
+        <div class="draw-period">${meta.label}</div>
+        <div class="draw-status">Draw soon</div>
+      </div>
+      <div class="draw-num-badge dash">–</div>
+      <div class="draw-mark-name pending">Draw soon</div>
+      ${underChip}
+    </div>`;
+  }).join("");
+}
+
+function renderShelf(){
+  const {known, unseen} = computeShelf();
+  const top = known.slice(0,8);
+  const list = document.getElementById('shelfList');
+  list.innerHTML = top.map(m=>`
+    <div class="shelf-row">
+      <div class="shelf-num">${m.n}</div>
+      <div class="shelf-name">${m.name}</div>
+      <div class="shelf-days">${m.days===0?"played today":m.days+" day"+(m.days===1?"":"s")}</div>
+    </div>`).join("");
+
+  const note = document.getElementById('shelfNote');
+  note.textContent = unseen.length
+    ? `${unseen.length} marks haven't shown at all in this ${HISTORY.length}-draw window (about 13 days) — including ${unseen.slice(0,3).map(m=>m.name).join(", ")}. Once this is wired to full NLCB history, shelf times will track months, not just days.`
+    : "";
+}
+
+function renderFollows(){
+  const featured = [
+    {n:18, note:"Water Boat has come up 3 times in this window — Fowl landed right after it twice."},
+    {n:5, note:"Parson Man has come up 4 times — Queen followed twice."}
+  ];
+  const wrap = document.getElementById('followList');
+  wrap.innerHTML = featured.map(f=>{
+    const m = MARK_BY_NUM[f.n];
+    const {ranked, total} = computeFollowers(f.n);
+    if(!ranked.length) return "";
+    const top = ranked[0];
+    const topMark = MARK_BY_NUM[top.n];
+    return `<div class="follow-block">
+      <div class="follow-chain">
+        <div class="follow-chip">${m.n} ${m.name}</div>
+        <div class="follow-arrow">→</div>
+        <div class="follow-chip">${topMark.n} ${topMark.name}</div>
+        <div class="follow-pct">${top.pct}%</div>
+      </div>
+      <div class="follow-desc">${f.note} Based on ${total} times ${m.name} has fallen so far — a bigger sample will sharpen this.</div>
+    </div>`;
+  }).join("");
+}
+
+/* =========================================================
+   RENDER — Wheel
+   ========================================================= */
+
+function renderWheel(){
+  const svg = document.getElementById('wheel');
+  const {known} = computeShelf();
+  const maxDays = Math.max(...known.map(m=>m.days), 1);
+  const dayMap = Object.fromEntries(known.map(m=>[m.n,m.days]));
+  const lastDraw = HISTORY[HISTORY.length-1];
+
+  const cx=145, cy=145, rOuter=140, rInner=62;
+  const n=36;
+  let svgHtml = "";
+
+  for(let i=0;i<n;i++){
+    const num = i+1;
+    const a0 = (i/n)*2*Math.PI - Math.PI/2;
+    const a1 = ((i+1)/n)*2*Math.PI - Math.PI/2;
+    const x0o = cx + rOuter*Math.cos(a0), y0o = cy + rOuter*Math.sin(a0);
+    const x1o = cx + rOuter*Math.cos(a1), y1o = cy + rOuter*Math.sin(a1);
+    const x0i = cx + rInner*Math.cos(a0), y0i = cy + rInner*Math.sin(a0);
+    const x1i = cx + rInner*Math.cos(a1), y1i = cy + rInner*Math.sin(a1);
+
+    let fill = "#4A1212"; // unseen = neutral deep red-brown
+    if(dayMap[num] !== undefined){
+      const t = dayMap[num]/maxDays; // 0 = fresh, 1 = longest shelved
+      // interpolate gold (fresh) -> deep red (shelved)
+      fill = t < 0.5
+        ? mixColor("#E8B923","#D08A2E", t*2)
+        : mixColor("#D08A2E","#C0392B", (t-0.5)*2);
+    }
+    const labelColor = readableTextColor(fill);
+
+    const mid = (a0+a1)/2;
+    const lx = cx + (rInner+rOuter)/2 * Math.cos(mid);
+    const ly = cy + (rInner+rOuter)/2 * Math.sin(mid) + 4;
+
+    svgHtml += `<path class="seg" data-num="${num}" d="M${x0o},${y0o} A${rOuter},${rOuter} 0 0 1 ${x1o},${y1o} L${x1i},${y1i} A${rInner},${rInner} 0 0 0 ${x0i},${y0i} Z" fill="${fill}" stroke="#7A1E1E" stroke-width="1.5"/>`;
+    svgHtml += `<text class="seg-label" x="${lx}" y="${ly}" text-anchor="middle" fill="${labelColor}">${num}</text>`;
+  }
+
+  svgHtml += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="#E8B923" stroke-width="2" opacity="0.55"/>`;
+  svgHtml += `<circle cx="${cx}" cy="${cy}" r="${rInner-2}" fill="#5C1616"/>`;
+  svgHtml += `<text class="wheel-center-num" x="${cx}" y="${cy-4}" text-anchor="middle" font-size="32">${lastDraw.n}</text>`;
+  svgHtml += `<text class="wheel-center-mark" x="${cx}" y="${cy+17}" text-anchor="middle">Last draw</text>`;
+
+  svg.innerHTML = svgHtml;
+
+  svg.querySelectorAll('.seg').forEach(seg=>{
+    seg.addEventListener('click', ()=>{
+      const num = parseInt(seg.getAttribute('data-num'));
+      goToView('view-marks');
+      setTimeout(()=>{
+        document.getElementById('glossarySearch').value = String(num);
+        filterGlossary();
+        document.getElementById('glossary-'+num)?.scrollIntoView({block:"center", behavior:"smooth"});
+      }, 50);
+    });
+  });
+}
+
+function mixColor(c1, c2, t){
+  const p1 = hexToRgb(c1), p2 = hexToRgb(c2);
+  const r = Math.round(p1.r + (p2.r-p1.r)*t);
+  const g = Math.round(p1.g + (p2.g-p1.g)*t);
+  const b = Math.round(p1.b + (p2.b-p1.b)*t);
+  return `rgb(${r},${g},${b})`;
+}
+function hexToRgb(hex){
+  const v = parseInt(hex.slice(1),16);
+  return {r:(v>>16)&255, g:(v>>8)&255, b:v&255};
+}
+function readableTextColor(color){
+  // Accepts '#rrggbb' or 'rgb(r,g,b)'; returns '#000000' or '#FFFFFF'
+  // based on WCAG-style relative luminance for reliable contrast.
+  let r,g,b;
+  if(color.startsWith('#')){
+    ({r,g,b} = hexToRgb(color));
+  } else {
+    const m = color.match(/[\d.]+/g).map(Number);
+    [r,g,b] = m;
+  }
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? "#241010" : "#FFFFFF";
+}
+
+/* =========================================================
+   RENDER — Ask (dream search)
+   ========================================================= */
+
+function runDreamSearch(query){
+  if(!query.trim()) return;
+  const scored = MARKS.map(m=>({...m, ...scoreMatch(query, m)}))
+    .filter(m=>m.score>0)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,6);
+
+  const card = document.getElementById('resultsCard');
+  const list = document.getElementById('matchList');
+
+  card.style.display = 'block';
+  if(!scored.length){
+    list.innerHTML = `<div class="empty-state">Nothing matched closely. Try a simpler word — like "money", "water", or "fight".</div>`;
+  } else {
+    list.innerHTML = scored.map(m=>`
+      <div class="match-row">
+        <div class="match-num">${m.n}</div>
+        <div style="flex:1;">
+          <div class="match-name">${m.name}</div>
+          <div class="match-why">matched: ${m.hits.join(", ")}</div>
+        </div>
+        <div class="match-score">${m.score} match${m.score===1?"":"es"}</div>
+      </div>`).join("");
+  }
+}
+
+/* =========================================================
+   RENDER — Marks glossary
+   ========================================================= */
+
+function renderGlossary(){
+  const list = document.getElementById('glossaryList');
+  list.innerHTML = MARKS.map(m=>`
+    <div class="glossary-item" id="glossary-${m.n}" data-search="${m.n} ${m.name.toLowerCase()} ${m.kw}">
+      <div class="glossary-head">
+        <div class="glossary-num">${m.n}</div>
+        <div class="glossary-name">${m.name}</div>
+      </div>
+      <div class="glossary-keywords">${m.kw.split(" ").slice(0,14).join(" ")}…</div>
+    </div>`).join("");
+}
+
+function filterGlossary(){
+  const q = document.getElementById('glossarySearch').value.toLowerCase().trim();
+  document.querySelectorAll('.glossary-item').forEach(el=>{
+    const hay = el.getAttribute('data-search');
+    el.style.display = (!q || hay.includes(q)) ? "" : "none";
+  });
+}
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+
+function goToView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-view="${id}"]`).classList.add('active');
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> goToView(btn.getAttribute('data-view')));
+});
+
+document.getElementById('dreamGo').addEventListener('click', ()=>{
+  runDreamSearch(document.getElementById('dreamInput').value);
+});
+document.getElementById('dreamInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') runDreamSearch(e.target.value);
+});
+document.querySelectorAll('.example-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.getElementById('dreamInput').value = chip.getAttribute('data-ex');
+    runDreamSearch(chip.getAttribute('data-ex'));
+  });
+});
+document.getElementById('glossarySearch').addEventListener('input', filterGlossary);
+
+/* =========================================================
+   Init
+   ========================================================= */
+renderGlossary();
+
+(async function init(){
+  await loadResults();
+  renderToday();
+  renderShelf();
+  renderFollows();
+  renderWheel();
+})();
+</script>
+</body>
+</html>

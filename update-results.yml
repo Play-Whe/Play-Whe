@@ -1,0 +1,45 @@
+name: Update Play Whe results
+
+# Trinidad runs on AST (UTC-4) year-round — no daylight saving to
+# account for, so these UTC times are fixed.
+#
+# Draws (AST): 10:30 AM, 1:00 PM, 4:00 PM, 6:30 PM, Mon-Sat.
+# Each draw gets 3 attempts a few minutes apart in case the results
+# page posts a little late. A run that finds nothing new just logs
+# and exits — cheap and harmless.
+on:
+  schedule:
+    - cron: "35,40,45 14 * * 1-6"   # ~10:30 AM draw
+    - cron: "5,10,15 17 * * 1-6"    # ~1:00 PM draw
+    - cron: "5,10,15 20 * * 1-6"    # ~4:00 PM draw
+    - cron: "35,40,45 22 * * 1-6"   # ~6:30 PM draw
+  workflow_dispatch: {}              # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write   # needed to commit results.json back to the repo
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python playwhe_scraper.py
+
+      - name: Commit updated results.json
+        run: |
+          git config user.name "playwhe-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add results.json playwhe.db
+          git diff --quiet --cached || git commit -m "Update results $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
