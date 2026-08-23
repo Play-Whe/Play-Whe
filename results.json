@@ -342,12 +342,14 @@
     "1": {
       "draw": 27185,
       "date": "2026-07-15",
-      "period": "EVENING"
+      "period": "EVENING",
+      "beyond_history": true
     },
     "2": {
       "draw": 27200,
       "date": "2026-07-19",
-      "period": "AFTERNOON"
+      "period": "AFTERNOON",
+      "beyond_history": true
     },
     "3": {
       "draw": 27287,
@@ -397,12 +399,14 @@
     "12": {
       "draw": 27191,
       "date": "2026-07-17",
-      "period": "MIDDAY"
+      "period": "MIDDAY",
+      "beyond_history": true
     },
     "13": {
       "draw": 27205,
       "date": "2026-07-20",
-      "period": "EVENING"
+      "period": "EVENING",
+      "beyond_history": true
     },
     "14": {
       "draw": 27286,
@@ -482,7 +486,8 @@
     "29": {
       "draw": 27246,
       "date": "2026-07-31",
-      "period": "MORNING"
+      "period": "MORNING",
+      "beyond_history": true
     },
     "30": {
       "draw": 27320,

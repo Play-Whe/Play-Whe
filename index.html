@@ -751,16 +751,27 @@ function renderShelf(){
   const {known, unseen} = computeShelf();
   const top = known.slice(0,8);
   const list = document.getElementById('shelfList');
-  list.innerHTML = top.map(m=>`
+  
+  // Show known shelf marks plus those beyond the history window
+  const allRows = [
+    ...top.map(m=>`
     <div class="shelf-row">
       <div class="shelf-num">${m.n}</div>
       <div class="shelf-name">${m.name}</div>
       <div class="shelf-days">${m.days===0?"played today":m.days+" day"+(m.days===1?"":"s")}</div>
-    </div>`).join("");
+    </div>`),
+    ...unseen.map(m=>`
+    <div class="shelf-row" style="opacity:0.7;">
+      <div class="shelf-num">${m.n}</div>
+      <div class="shelf-name">${m.name}</div>
+      <div class="shelf-days" style="color:var(--gold);">Beyond window</div>
+    </div>`)
+  ];
+  list.innerHTML = allRows.join("");
 
   const note = document.getElementById('shelfNote');
   note.textContent = unseen.length
-    ? `${unseen.length} marks haven't shown at all in this ${HISTORY.length}-draw window (about 13 days) — including ${unseen.slice(0,3).map(m=>m.name).join(", ")}. Once this is wired to full NLCB history, shelf times will track months, not just days.`
+    ? `${unseen.length} marks (${unseen.map(m=>m.name).join(", ")}) haven't shown at all in this ${HISTORY.length}-draw window. Once wired to full NLCB history, shelf times will track months, not just days.`
     : "";
 }
 
@@ -794,9 +805,13 @@ function renderFollows(){
 
 function renderWheel(){
   const svg = document.getElementById('wheel');
-  const {known} = computeShelf();
+  const {known, unseen} = computeShelf();
   const maxDays = Math.max(...known.map(m=>m.days), 1);
-  const dayMap = Object.fromEntries(known.map(m=>[m.n,m.days]));
+  // Include unseen marks as "beyond history" — assign them maxDays*2 so they show darkest red
+  const dayMap = Object.fromEntries([
+    ...known.map(m=>[m.n,m.days]),
+    ...unseen.map(m=>[m.n, maxDays*2])
+  ]);
   const lastDraw = HISTORY[HISTORY.length-1];
 
   const cx=145, cy=145, rOuter=140, rInner=62;
@@ -812,9 +827,9 @@ function renderWheel(){
     const x0i = cx + rInner*Math.cos(a0), y0i = cy + rInner*Math.sin(a0);
     const x1i = cx + rInner*Math.cos(a1), y1i = cy + rInner*Math.sin(a1);
 
-    let fill = "#4A1212"; // unseen = neutral deep red-brown
+    let fill = "#4A1212"; // default = neutral deep red-brown
     if(dayMap[num] !== undefined){
-      const t = dayMap[num]/maxDays; // 0 = fresh, 1 = longest shelved
+      const t = Math.min(dayMap[num]/maxDays, 1); // 0 = fresh, 1+ = longest shelved (capped at 1)
       // interpolate gold (fresh) -> deep red (shelved)
       fill = t < 0.5
         ? mixColor("#E8B923","#D08A2E", t*2)
