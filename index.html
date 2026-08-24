@@ -607,11 +607,13 @@ let TODAY = FALLBACK_TODAY;
 let USING_LIVE_DATA = false;
 
 function getTrinidadDateISO(){
-  // Trinidad is AST (UTC-4) year-round — no daylight saving.
+  // Phone is already set to Trinidad timezone (America/Port_of_Spain),
+  // so just use local date directly.
   const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const trinidadMs = utcMs + (-4) * 3600000;
-  return new Date(trinidadMs).toISOString().slice(0, 10);
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 async function loadResults(){
@@ -623,9 +625,10 @@ async function loadResults(){
       throw new Error("results.json has no history");
     }
     HISTORY = data.history;
-    TODAY = getTrinidadDateISO();
+    // Extract TODAY from the most recent draw in the data — the authoritative source
+    TODAY = HISTORY[HISTORY.length - 1].date;
     USING_LIVE_DATA = true;
-    console.info("Loaded", HISTORY.length, "live draws from results.json");
+    console.info("Loaded", HISTORY.length, "live draws from results.json; TODAY =", TODAY);
   } catch(err){
     console.warn("Couldn't load results.json — showing seeded fallback data.", err);
     HISTORY = FALLBACK_HISTORY;
